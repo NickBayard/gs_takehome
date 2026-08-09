@@ -6,12 +6,12 @@ from fastapi import (
     status,
 )
 from greatsky.db import get_db_class
-from greatsky.routers.tags import Tag
 from greatsky.db.orm import (
     Device,
     Session,
     SessionModel,
 )
+from greatsky.utils import Tag
 
 
 router = APIRouter()
@@ -99,8 +99,44 @@ def create_session(response: Response):
         device.update(db)
         return session.model_dump_json()
 
+        
+@router.get(
+    "/devices/sessions/{session_id}",
+    tags=[Tag.sessions],
+    status_code=status.HTTP_200_OK,
+)
+def get_session(session_id: str, response: Response):
+    """
+    Get a specific session.
+    """
+    with DB_TYPE() as db:
+        try:
+            session = Session.get(session_id, db)
+        except KeyError as e:
+            response.status_code = status.HTTP_404_NOT_FOUND
+            return {'error': f'Session not found: {session_id}'}
+        
+        return session.model_dump_json()
 
-@router.update(
+
+@router.get(
+    "/devices/sessions/",
+    tags=[Tag.sessions],
+    status_code=status.HTTP_200_OK,
+)
+def get_all_sessions():
+    """
+    Get a specific session.
+    """
+    with DB_TYPE() as db:
+        sessions = Session.get_all(db)
+
+    return {'sessions': [
+        session.model_dump_json() for session in sessions
+    ]}
+
+
+@router.patch(
     "/devices/sessions/{session_id}",
     tags=[Tag.sessions],
     status_code=status.HTTP_200_OK,

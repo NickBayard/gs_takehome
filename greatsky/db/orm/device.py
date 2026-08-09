@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class DeviceModel(BaseModel):
-    active_session_id: str
+    active_session_id: str | None = None
     model_config = ConfigDict(extra='forbid')
 
 
