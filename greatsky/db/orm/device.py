@@ -8,8 +8,15 @@ from pydantic import BaseModel, ConfigDict
 
 
 class DeviceModel(BaseModel):
-    pass
+    active_session_id: str
+    model_config = ConfigDict(extra='forbid')
 
 
 class Device(DatabaseEntry):
-    pass
+    @classmethod
+    def get_label(cls) -> str:
+        return "Device"
+
+    @classmethod
+    def get_model_type(cls) -> type[BaseModel]:
+        return DeviceModel

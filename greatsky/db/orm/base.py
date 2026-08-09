@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import uuid
 from abc import ABC, abstractmethod
+from typing import Any, Self
 from greatsky.db import BaseKVDB
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+KEY_DELIMITER: str = ':::'
 
-class DatabaseEntry(ABC):
-    def __init__(self, db_id: str, model: BaseModel):
-        self._id = db_id
-        self.model = model
+class DatabaseEntry(ABC, BaseModel):
+    db_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    model: BaseModel | Any = None
 
     @classmethod
     @abstractmethod
@@ -22,21 +24,29 @@ class DatabaseEntry(ABC):
 
     @classmethod
     def make_key(cls, key: str):
-        return f'{cls.get_label()}:{key}'
+        return f'{cls.get_label()}{KEY_DELIMITER}{key}'
 
     @classmethod
     def strip_key(cls, key: str):
-        return ':'.split(key)[-1]
+        return KEY_DELIMITER.split(key)[-1]
 
     @classmethod
     def deserialize_model(cls, serialized: str) -> BaseModel:
         return cls.get_model_type().model_validate_json(serialized)
 
     def update(self, db: BaseKVDB):
-        db[self.make_key(self._id)] = self.model.model_dump_json()
+        """
+        Serialize object and write to database.
+        This can be used to both create new entries as well
+        as update existing ones.
+        """
+        db[self.make_key(self.db_id)] = self.model.model_dump_json()
 
     @classmethod
-    def read(cls, key: str, db: BaseKVDB) -> DatabaseEntry:
+    def get(cls, key: str, db: BaseKVDB) -> Self:
+        """
+        Read object from database and deserialize
+        """
         full_key = cls.make_key(key)
         value = db[full_key]
         if value is None:
@@ -48,7 +58,11 @@ class DatabaseEntry(ABC):
         )
 
     @classmethod
-    def read_all(cls, db: BaseKVDB) -> list[DatabaseEntry]:
+    def get_all(cls, db: BaseKVDB) -> list[Self]:
+        """
+        Read all objects of this type from database and return
+        a list of deserialized objects
+        """
         entries = db.read_all(prefix=f'{cls.get_label()}:')
         return [
             cls(
@@ -59,5 +73,8 @@ class DatabaseEntry(ABC):
 
     @classmethod
     def delete(cls, key: str, db: BaseKVDB) -> None:
+        """
+        Remove an entry from the database
+        """
         full_key = cls.make_key(key)
         del db[full_key]
