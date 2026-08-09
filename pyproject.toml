@@ -1,3 +1,11 @@
+[project]
+name = "greatsky"  # What users type for: pip install my-distribution-name
+version = "0.1.0"
+description = "Greatsky Take Home Assignment"
+
+[tool.setuptools]
+packages = ["greatsky"]
+
 [tool.fastapi]
-entrypoint = "main:app"
+entrypoint = "greatsky.main:app"
 

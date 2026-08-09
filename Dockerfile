@@ -8,6 +8,6 @@ RUN apt update && apt install -y build-essential libleveldb1d libleveldb-dev
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-COPY ./app /code/app
+COPY ./greatsky /code/greatsky
 
-CMD ["fastapi", "run", "app/main.py", "--port", "80", "--host", "0.0.0.0"]
+CMD ["fastapi", "run", "greatsky/main.py", "--port", "80", "--host", "0.0.0.0"]
