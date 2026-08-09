@@ -10,7 +10,13 @@ router = APIRouter()
 # the database class type.
 DB_TYPE = get_db_class()
 
-@router.post("/devices/", tags=[Tag.devices])
-def create_device():
+@router.post("/devices/{device_id}/sessions/", tags=[Tag.sessions])
+def create_device_session(device_id: str):
+    with DB_TYPE() as db:
+        return {k:v for k,v in db.db}
+
+
+@router.post("/devices/sessions/", tags=[Tag.sessions])
+def create_session():
     with DB_TYPE() as db:
         return {k:v for k,v in db.db}
