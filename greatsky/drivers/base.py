@@ -11,7 +11,7 @@ class to only have access to the instrumentation drivers that it needs
 and only exposes the instrumentation API methods that are appropriate
 for that component type.
 """
-from greatsky.drivers.lib import (
+from greatsky.greatsky.drivers.lib import (
     poll_driver,
     DriverAttribute,
 ) 
