@@ -36,7 +36,6 @@ def create_device(model: DeviceModel):
     return device.model_dump_json()
 
 
-
 @router.get(
     "/devices/{device_id}",
     tags=[Tag.devices],
@@ -71,7 +70,6 @@ def get_all_devices():
     return {'devices': [
         device.model_dump_json() for device in devices
     ]}
-
 
 
 @router.patch(
