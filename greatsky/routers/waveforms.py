@@ -8,11 +8,14 @@ from greatsky.db import get_db_class
 from greatsky.db.orm import Device
 from greatsky.drivers.base import InputDriver, OutputDriver
 from greatsky.routers.models import (
-    WaveformInputModel,
-    WaveformActiveInputModel,
-    WaveformStatusOutputModel,
+    CreateInputWaveformsRequest,
+    CreateInputWaveformsResponse,
+    SetInputWaveformActivationRequest,
+    SetInputWaveformActivationResponse,
+    SetOutputWaveformCaptureStatusRequest,
+    SetOutputWaveformCaptureStatusResponse,
     WaveformCaptureStatus,
-    WaveformCaptureOutput,
+    GetOutputWaveformsResponse,
 )
 from greatsky.utils import (
     validate_session_and_device,
@@ -38,7 +41,7 @@ DB_TYPE = get_db_class()
 def create_input_waveforms(
     device_id: str,
     session_id: str,
-    wave: WaveformInputModel, 
+    wave: CreateInputWaveformsRequest, 
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -71,12 +74,12 @@ def create_input_waveforms(
         driver = InputDriver(input_id)
         driver.set_waveform(wave.waveform)
         
-    result = dict(
-        wave=wave.model.dump(),
+    result = CreateInputWaveformsResponse(
         device_id=device_id,
+        wave=wave,
     )
 
-    return json.dumps(result)
+    return result.model_dump_json()
 
 
 @router.patch(
@@ -87,7 +90,7 @@ def create_input_waveforms(
 def set_input_waveform_activation(
     device_id: str,
     session_id: str,
-    activation: WaveformActiveInputModel, 
+    activation: SetInputWaveformActivationRequest, 
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -115,12 +118,12 @@ def set_input_waveform_activation(
         driver = InputDriver(input_id)
         driver.set_waveform_enabled(activation.enabled)
         
-    result = dict(
-        activation=activation.model.dump(),
+    result = SetInputWaveformActivationResponse(
         device_id=device_id,
+        activation=activation,
     )
 
-    return json.dumps(result)
+    return result.model_dump_json()
 
 
 @router.patch(
@@ -131,7 +134,7 @@ def set_input_waveform_activation(
 def set_output_waveform_capture_status(
     device_id: str,
     session_id: str,
-    capture: WaveformStatusOutputModel,
+    capture: SetOutputWaveformCaptureStatusRequest,
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -164,12 +167,12 @@ def set_output_waveform_capture_status(
             driver = OutputDriver(output_id)
             driver.capture_waveform()
         
-    result = dict(
-        activation=capture.model.dump(),
+    result = SetOutputWaveformCaptureStatusResponse(
         device_id=device_id,
+        capture=capture,
     )
 
-    return json.dumps(result)
+    return result.model_dump_json()
 
 
 @router.get(
@@ -210,9 +213,9 @@ def get_output_waveforms(
         capture = driver.get_waveform()
         captures[output_id] = capture
 
-    capture = WaveformCaptureOutput(
+    result = GetOutputWaveformsResponse(
         device_id=device_id,
         captures=captures,
     )
         
-    return capture.model_dump_json()
+    return result.model_dump_json()

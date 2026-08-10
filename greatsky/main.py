@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Response, status
 
 from greatsky.routers import (
-    currents,
+    biases,
     devices,
     sessions, 
     waveforms,
@@ -12,5 +12,5 @@ app = FastAPI()
 app.include_router(devices.router)
 app.include_router(sessions.router)
 app.include_router(waveforms.router)
-app.include_router(currents.router)
+app.include_router(biases.router)
 app.include_router(weights.router)

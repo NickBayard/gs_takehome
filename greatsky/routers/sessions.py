@@ -158,7 +158,7 @@ def deactivate_session(session_id: str, response: Response):
         except KeyError:
             # We will still close the session and only send an error message
             # with the body.
-            error = f'Device not found for session. Ignored.'
+            error = f'Device not found for session: {session.model.device_id}'
 
         session.model.active = False
         session.update(db)
@@ -167,6 +167,8 @@ def deactivate_session(session_id: str, response: Response):
             device.update(db)
         
         result = session.model_dump()
+        # Return success but include an error message that the device was not found
+        # This is not strictly necessary.
         if error:
             result['error'] = error
         return json.dumps(result)

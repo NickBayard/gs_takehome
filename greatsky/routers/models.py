@@ -9,19 +9,30 @@ class Waveform(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
 
-class WaveformInputModel(BaseModel):
+class CreateInputWaveformsRequest(BaseModel):
     waveform: Waveform
     # Default input_ids = [] means ALL inputs
     input_ids: list[str] = Field(default_factory=list)
     model_config = ConfigDict(extra='forbid')
 
 
-class WaveformActiveInputModel(BaseModel):
+class CreateInputWaveformsResponse(BaseModel):
+    device_id: str
+    wave: CreateInputWaveformsRequest
+    model_config = ConfigDict(extra='forbid')
+
+
+class SetInputWaveformActivationRequest(BaseModel):
     enabled: bool = False
     # Default input_ids = [] means ALL inputs
     input_ids: list[str] = Field(default_factory=list)
     model_config = ConfigDict(extra='forbid')
 
+    
+class SetInputWaveformActivationResponse(BaseModel):
+    device_id: str
+    activation: SetInputWaveformActivationRequest
+    model_config = ConfigDict(extra='forbid')
 
 
 class WaveformCaptureStatus(StrEnum):
@@ -29,37 +40,85 @@ class WaveformCaptureStatus(StrEnum):
     holding = 'holding'  # not capturing
 
     
-class WaveformStatusOutputModel(BaseModel):
+class SetOutputWaveformCaptureStatusRequest(BaseModel):
     status: WaveformCaptureStatus = WaveformCaptureStatus.holding
     # Default output_ids = [] means ALL outputs
     output_ids: list[str] = Field(default_factory=list)
     model_config = ConfigDict(extra='forbid')
 
-
-class WaveformCaptureOutput(BaseModel):
+    
+class SetOutputWaveformCaptureStatusResponse(BaseModel):
     device_id: str
-    captures: dict[str, bytearray]
+    capture: SetOutputWaveformCaptureStatusRequest
     model_config = ConfigDict(extra='forbid')
 
 
-class CurrentOutputsModel(BaseModel):
-    value: float  # current mA
-    enabled: bool = False
+class GetOutputWaveformsResponse(BaseModel):
+    device_id: str
+    captures: dict[str, bytes]
+    model_config = ConfigDict(extra='forbid')
+
+
+class SetOutputBiasesRequest(BaseModel):
+    # For value and enabled, None means don't change the setting
+    value: float | None = None  # voltage V
+    enabled: bool | None = None
     # Default output_ids = [] means ALL outputs
     output_ids: list[str] = Field(default_factory=list)
     model_config = ConfigDict(extra='forbid')
 
 
-class CurrentEdgesModel(BaseModel):
-    value: float  # current mA
-    enabled: bool = False
+class SetOutputBiasesResponse(BaseModel):
+    device_id: str
+    bias: SetOutputBiasesRequest
+    model_config = ConfigDict(extra='forbid')
+
+
+class GetOutputBiasesResponse(BaseModel):
+    device_id: str
+    # biases is a dict of output_ids to voltages
+    biases: dict[str, float] = Field(default_factory=dict)
+    errors: list[str] = Field(default_factory=list)
+    model_config = ConfigDict(extra='forbid')
+
+
+class SetEdgesBiasesRequest(BaseModel):
+    value: float | None = None
+    enabled: bool | None = None
+    # Default edge_ids = [] means ALL edges
+    edge_ids: list[tuple[str, str]] = Field(default_factory=list)
+    model_config = ConfigDict(extra='forbid')
+
+class SetEdgesBiasesResponse(BaseModel):
+    device_id: str
+    biases: SetEdgesBiasesRequest
+    model_config = ConfigDict(extra='forbid')
+
+
+class GetEdgesBiasesResponse(BaseModel):
+    device_id: str
+    # biases is a dict of output_ids to voltages
+    biases: dict[tuple[str, str], float] = Field(default_factory=dict)
+    errors: list[str] = Field(default_factory=list)
+    model_config = ConfigDict(extra='forbid')
+
+
+class GetAllBiasesResponse(BaseModel):
+    device_id: str
+    output_biases: dict[str, float] = Field(default_factory=dict)
+    edge_biases: dict[tuple[str, str], float] = Field(default_factory=dict)
+    errors: list[str] = Field(default_factory=list)
+    model_config = ConfigDict(extra='forbid')
+
+
+class SetEdgesWeightsRequest(BaseModel):
+    weight: float
     # Default edge_ids = [] means ALL edges
     edge_ids: list[tuple[str, str]] = Field(default_factory=list)
     model_config = ConfigDict(extra='forbid')
 
 
-class WeightEdgesModel(BaseModel):
-    weight: float
-    # Default edge_ids = [] means ALL edges
-    edge_ids: list[tuple[str, str]] = Field(default_factory=list)
+class SetEdgesWeightsResponse(BaseModel):
+    device_id: str
+    weights: SetEdgesWeightsRequest
     model_config = ConfigDict(extra='forbid')

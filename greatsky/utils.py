@@ -14,7 +14,7 @@ class Tag(StrEnum):
     devices = "Devices"
     sessions = "Sessions"
     users = "Users"
-    currents = "Currents"
+    biases = "Biases"
     waveforms = "Waveforms"
     weights = "Weights"
 

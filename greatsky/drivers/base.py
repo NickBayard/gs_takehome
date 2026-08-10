@@ -11,7 +11,7 @@ class to only have access to the instrumentation drivers that it needs
 and only exposes the instrumentation API methods that are appropriate
 for that component type.
 """
-from greatsky.greatsky.drivers.lib import (
+from greatsky.drivers.lib import (
     poll_driver,
     DriverAttribute,
 ) 
@@ -38,6 +38,7 @@ class BiasDriver:
                 f'Driver {self.bias_driver.__class__.__name__} has '
                 'no method get_volt.'
             )
+        return self.bias_driver.get_volt()
                 
     def set_volt_enabled(self, enabled: bool):
         # NOTE: unstable driver interface
@@ -107,7 +108,7 @@ class OutputDriver(BiasDriver, WaveformOutDriver):
 
 
 class EdgeDriver(BiasDriver, MemoryDriver):
-    def __init__(self, edge_id: str):
+    def __init__(self, edge_id: tuple[str, str]):
         self.edge_id = edge_id
         BiasDriver.__init__(self, poll_driver(DriverAttribute.EDGE_BIAS))
         MemoryDriver.__init__(self, poll_driver(DriverAttribute.EDGE_WEIGHT))
