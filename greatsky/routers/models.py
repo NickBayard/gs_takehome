@@ -10,7 +10,7 @@ class Waveform(BaseModel):
 
 
 class WaveformInputModel(BaseModel):
-    wave: Waveform
+    waveform: Waveform
     # Default input_ids = [] means ALL inputs
     input_ids: list[str] = Field(default_factory=list)
     model_config = ConfigDict(extra='forbid')
@@ -36,6 +36,12 @@ class WaveformStatusOutputModel(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
 
+class WaveformCaptureOutput(BaseModel):
+    device_id: str
+    captures: dict[str, bytearray]
+    model_config = ConfigDict(extra='forbid')
+
+
 class CurrentOutputsModel(BaseModel):
     value: float  # current mA
     enabled: bool = False
@@ -48,12 +54,12 @@ class CurrentEdgesModel(BaseModel):
     value: float  # current mA
     enabled: bool = False
     # Default edge_ids = [] means ALL edges
-    edge_ids: list[str] = Field(default_factory=list)
+    edge_ids: list[tuple[str, str]] = Field(default_factory=list)
     model_config = ConfigDict(extra='forbid')
 
 
 class WeightEdgesModel(BaseModel):
     weight: float
     # Default edge_ids = [] means ALL edges
-    edge_ids: list[str] = Field(default_factory=list)
+    edge_ids: list[tuple[str, str]] = Field(default_factory=list)
     model_config = ConfigDict(extra='forbid')

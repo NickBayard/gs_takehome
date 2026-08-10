@@ -1,3 +1,4 @@
+import json
 from fastapi import (
     APIRouter,
     Response,
@@ -5,10 +6,13 @@ from fastapi import (
 )
 from greatsky.db import get_db_class
 from greatsky.db.orm import Device
+from greatsky.drivers.base import InputDriver, OutputDriver
 from greatsky.routers.models import (
     WaveformInputModel,
     WaveformActiveInputModel,
     WaveformStatusOutputModel,
+    WaveformCaptureStatus,
+    WaveformCaptureOutput,
 )
 from greatsky.utils import (
     validate_session_and_device,
@@ -48,13 +52,31 @@ def create_input_waveforms(
         except SessionDeviceError as e:
             return {'error': str(e)}
 
-        # Device and session are active
-        # TODO create the waveform and associate it will each of the inputs
-        # specified for this device.  Then dispatch waveform to drivers.
-        # check input_ids against list of inputs on actual device
+    # check input_ids against list of inputs on actual device
+    extra = set(wave.input_ids).difference(set(device.model.input_ids))
+    if extra:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {
+            'error': 'Invalid input_ids specified for device '
+                        f'{device_id}: {extra}'
+        }
+    
+    # Dispatch waveform to driver for each of the specified device inputs
+    # NOTE: This is highly error prone and wouldn't likely work in the
+    # real world.  Several inputs could be conneted to the same waveform
+    # generator, which would configure that generator output multiple time.
+    # This could realistically take a long time, longer than we want for a
+    # synchronous response.
+    for input_id in wave.input_ids:
+        driver = InputDriver(input_id)
+        driver.set_waveform(wave.waveform)
         
-    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    return {'error': 'Not implemented'}
+    result = dict(
+        wave=wave.model.dump(),
+        device_id=device_id,
+    )
+
+    return json.dumps(result)
 
 
 @router.patch(
@@ -65,7 +87,7 @@ def create_input_waveforms(
 def set_input_waveform_activation(
     device_id: str,
     session_id: str,
-    activations: WaveformActiveInputModel, 
+    activation: WaveformActiveInputModel, 
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -79,12 +101,26 @@ def set_input_waveform_activation(
         except SessionDeviceError as e:
             return {'error': str(e)}
 
-        # Device and session are active
-        # TODO check input_ids against list of inputs on actual device
-        # activate/dactivte specified inputs on this device
+    # Check input_ids against list of inputs on actual device
+    extra = set(activation.input_ids).difference(set(device.model.input_ids))
+    if extra:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {
+            'error': 'Invalid input_ids specified for device '
+                        f'{device_id}: {extra}'
+        }
+
+    # activate/deactivate specified inputs on this device
+    for input_id in activation.input_ids:
+        driver = InputDriver(input_id)
+        driver.set_waveform_enabled(activation.enabled)
         
-    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    return {'error': 'Not implemented'}
+    result = dict(
+        activation=activation.model.dump(),
+        device_id=device_id,
+    )
+
+    return json.dumps(result)
 
 
 @router.patch(
@@ -109,12 +145,31 @@ def set_output_waveform_capture_status(
         except SessionDeviceError as e:
             return {'error': str(e)}
 
-        # Device and session are active
-        # TODO check output_ids against list of outputs on actual device
-        # set capture status for specified outputs
+    # Check output_ids against list of outputs on actual device
+    extra = set(capture.output_ids).difference(set(device.model.output_ids))
+    if extra:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {
+            'error': 'Invalid output_ids specified for device '
+                     f'{device_id}: {extra}'
+        }
+
+    # set capture status for specified outputs
+    # NOTE: This highlights an inconsistency in the device API.
+    # There's no mechanism to stop capturing.  The assumption is
+    # that a get_waveform call will stop capturing and return the
+    # captured waveform
+    if capture.status == WaveformCaptureStatus.capturing:
+        for output_id in capture.output_ids:
+            driver = OutputDriver(output_id)
+            driver.capture_waveform()
         
-    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    return {'error': 'Not implemented'}
+    result = dict(
+        activation=capture.model.dump(),
+        device_id=device_id,
+    )
+
+    return json.dumps(result)
 
 
 @router.get(
@@ -139,9 +194,25 @@ def get_output_waveforms(
         except SessionDeviceError as e:
             return {'error': str(e)}
 
-        # Device and session are active
-        # TODO check output_ids against list of outputs on actual device
-        # collect capture status for specified outputs
+    # Check output_ids against list of outputs on actual device
+    extra = set(output_ids).difference(set(device.model.output_ids))
+    if extra:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {
+            'error': 'Invalid output_ids specified for device '
+                     f'{device_id}: {extra}'
+        }
+
+    # collect waveform captures for specified outputs
+    captures = {}
+    for output_id in output_ids:
+        driver = OutputDriver(output_id)
+        capture = driver.get_waveform()
+        captures[output_id] = capture
+
+    capture = WaveformCaptureOutput(
+        device_id=device_id,
+        captures=captures,
+    )
         
-    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    return {'error': 'Not implemented'}
+    return capture.model_dump_json()

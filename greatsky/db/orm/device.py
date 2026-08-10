@@ -17,7 +17,7 @@ class DeviceModel(BaseModel):
     # An input id cannot be the same as an output id.
     # This allows edges to connect inputs to inputs and
     # outputs to outputs.
-    inputs_ids: list[str] = Field(default_factory=list)
+    input_ids: list[str] = Field(default_factory=list)
     output_ids: list[str] = Field(default_factory=list)
     # each tuple in edge_ids is an edge connection
     # each end of the edge may be a input or output
