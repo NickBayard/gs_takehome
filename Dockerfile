@@ -3,6 +3,7 @@ FROM python:3.14-slim-trixie
 WORKDIR /code
 
 COPY ./requirements.txt /code/requirements.txt
+COPY ./config.yaml /code/config.yaml
 
 RUN apt update && apt install -y build-essential libleveldb1d libleveldb-dev
 
