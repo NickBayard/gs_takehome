@@ -13,7 +13,6 @@ from greatsky.db.orm import (
 )
 from greatsky.utils import Tag
 
-
 router = APIRouter()
 
 # get_db_class allows us to swap out another key-value data store
@@ -35,23 +34,24 @@ def create_device_session(device_id: str, response: Response):
     with DB_TYPE() as db:
         try:
             device = Device.get(device_id, db)
-        except KeyError as e:
+        except KeyError:
             response.status_code = status.HTTP_404_NOT_FOUND
-            return {'error': f'Device not found: {device_id}'}
-            
+            return {"error": f"Device not found: {device_id}"}
+
         if device.model.active_session_id:
             response.status_code = status.HTTP_409_CONFLICT
-            return {'error': 'Device is currently locked in another'
-                    f'session: {device_id}'}
+            return {
+                "error": "Device is currently locked in another" f"session: {device_id}"
+            }
 
         # create a new session
         session = Session(
             model=SessionModel(
                 device_id=device_id,
                 active=True,
-            ) 
+            )
         )
-        
+
         # associate session with this device
         device.model.active_session_id = session.db_id
 
@@ -82,14 +82,14 @@ def create_session(response: Response):
                 break
         else:  # no free devices
             response.status_code = status.HTTP_409_CONFLICT
-            return {'error': 'All devices are currently locked other sessions'}
+            return {"error": "All devices are currently locked other sessions"}
 
         # create a new session
         session = Session(
             model=SessionModel(
-                device_id=device_id,
+                device_id=device.db_id,
                 active=True,
-            ) 
+            )
         )
         # associate session with this device
         device.model.active_session_id = session.db_id
@@ -99,7 +99,7 @@ def create_session(response: Response):
         device.update(db)
         return session.model_dump_json()
 
-        
+
 @router.get(
     "/devices/sessions/{session_id}",
     tags=[Tag.sessions],
@@ -112,10 +112,10 @@ def get_session(session_id: str, response: Response):
     with DB_TYPE() as db:
         try:
             session = Session.get(session_id, db)
-        except KeyError as e:
+        except KeyError:
             response.status_code = status.HTTP_404_NOT_FOUND
-            return {'error': f'Session not found: {session_id}'}
-        
+            return {"error": f"Session not found: {session_id}"}
+
         return session.model_dump_json()
 
 
@@ -131,9 +131,7 @@ def get_all_sessions():
     with DB_TYPE() as db:
         sessions = Session.get_all(db)
 
-    return {'sessions': [
-        session.model_dump_json() for session in sessions
-    ]}
+    return {"sessions": [session.model_dump_json() for session in sessions]}
 
 
 @router.patch(
@@ -148,27 +146,27 @@ def deactivate_session(session_id: str, response: Response):
     with DB_TYPE() as db:
         try:
             session = Session.get(session_id, db)
-        except KeyError as e:
+        except KeyError:
             response.status_code = status.HTTP_404_NOT_FOUND
-            return {'error': f'Session not found: {session_id}'}
-        
+            return {"error": f"Session not found: {session_id}"}
+
         error = None
         try:
             device = Device.get(session.model.device_id, db)
         except KeyError:
             # We will still close the session and only send an error message
             # with the body.
-            error = f'Device not found for session: {session.model.device_id}'
+            error = f"Device not found for session: {session.model.device_id}"
 
         session.model.active = False
         session.update(db)
         if not error:
             device.model.active_session_id = None
             device.update(db)
-        
+
         result = session.model_dump()
         # Return success but include an error message that the device was not found
         # This is not strictly necessary.
         if error:
-            result['error'] = error
+            result["error"] = error
         return json.dumps(result)

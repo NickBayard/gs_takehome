@@ -7,7 +7,7 @@ from greatsky.db.orm.base import DatabaseEntry
 class SessionModel(BaseModel):
     device_id: str
     active: bool
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
 
 
 class Session(DatabaseEntry):

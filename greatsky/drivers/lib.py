@@ -10,6 +10,7 @@ class VoltageSource:
     This is a driver class for an instrument which connect to a single
     device's bias connection
     """
+
     def output(self, setting: bool):
         # Function which turns output of the instrument on or off
         pass
@@ -29,16 +30,17 @@ class VoltageSource:
         # edge's memory
         pass
 
-    
+
 class RFSoC:
     """
     This is a driver class for an instrument which is used to send and
     receive analog waveforms
     """
+
     def set_waveform(self, wave: Waveform):
         # Writes <wave> to the memory of the RFSoC
         pass
-        
+
     def capture_waveform(self):
         # Reads input from analog to digital (ADC) of the RFSoC and stores
         # the waveform in the memory of the RFSoC
@@ -56,11 +58,13 @@ class RFSoC:
         # Turns off the output of the RFSoC
         pass
 
+
 class AWG:
     """
     This is a driver class for an AWG "arbitrary waveform generator", which
     is used to send analog waveforms
     """
+
     def set_volt(self, value: float):
         # Function which sets the voltage level the instrument will output
         # when turned on
@@ -78,11 +82,13 @@ class AWG:
         # Turns off the output of the AWG
         pass
 
+
 class Scope:
     """
     This is a driver class for a oscilloscope. which is used to capture
     analog waveforms
     """
+
     def capture_waveform(self):
         # Reads input from analog to digital (ADC) of the scope and stores
         # the waveform in the memory of the scope
@@ -98,6 +104,7 @@ class MemoryController:
     This is a driver class for a instrument which connects to multiple edge's
     memory at the same time.
     """
+
     def set_memory(self, value: float, row: int, col: int):
         # This function sets the memory for an edge for indexed by the
         # edge's adjacency matrix row and column.
@@ -118,15 +125,17 @@ class DriverAttribute(Enum):
 # but the assignment requires the use of poll_driver.  So we are just
 # mocking things for now.
 _DRIVER_ATTRIBUTE_MAP: dict[DriverAttribute, Any] = {
-    DriverAttribute.EDGE_BIAS:  VoltageSource,
+    DriverAttribute.EDGE_BIAS: VoltageSource,
     DriverAttribute.EDGE_WEIGHT: MemoryController,
     DriverAttribute.OUTPUT_BIAS: VoltageSource,
     DriverAttribute.OUTPUT_WAVEFORM: Scope,
     DriverAttribute.INPUT_WAVEFORM: AWG,
 }
-    
-    
-def poll_driver(attribute: DriverAttribute) -> VoltageSource | RFSoC | AWG | Scope | MemoryController:
+
+
+def poll_driver(
+    attribute: DriverAttribute,
+) -> VoltageSource | RFSoC | AWG | Scope | MemoryController:
     """
     This function polls the physical system and returns a
     driver class for the provided attribute. Examples of an attribute are edge-bias,

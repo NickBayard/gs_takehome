@@ -10,7 +10,6 @@ from greatsky.db.orm import (
 )
 from greatsky.utils import Tag
 
-
 router = APIRouter()
 
 # get_db_class allows us to swap out another key-value data store
@@ -18,6 +17,7 @@ router = APIRouter()
 # interface.  This class uses the YAML config file to determine
 # the database class type.
 DB_TYPE = get_db_class()
+
 
 @router.post(
     "/devices/",
@@ -48,12 +48,12 @@ def get_device(device_id: str, response: Response):
     with DB_TYPE() as db:
         try:
             device = Device.get(device_id, db)
-        except KeyError as e:
+        except KeyError:
             response.status_code = status.HTTP_404_NOT_FOUND
-            return {'error': f'Device not found: {device_id}'}
+            return {"error": f"Device not found: {device_id}"}
 
     return device.model_dump_json()
-            
+
 
 @router.get(
     "/devices/",
@@ -67,9 +67,7 @@ def get_all_devices():
     with DB_TYPE() as db:
         devices = Device.get_all(db)
 
-    return {'devices': [
-        device.model_dump_json() for device in devices
-    ]}
+    return {"devices": [device.model_dump_json() for device in devices]}
 
 
 @router.patch(
@@ -84,12 +82,12 @@ def update_device(device_id: str, model: DeviceModel, response: Response):
     with DB_TYPE() as db:
         try:
             device = Device.get(device_id, db)
-        except KeyError as e:
+        except KeyError:
             response.status_code = status.HTTP_404_NOT_FOUND
-            return {'error': f'Device not found: {device_id}'}
+            return {"error": f"Device not found: {device_id}"}
 
         # Replace the model wholesale
-        device.model = model  
+        device.model = model
         device.update(db)
 
     return device.model_dump_json()

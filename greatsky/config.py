@@ -9,18 +9,20 @@ from yaml import safe_load, YAMLObject, SafeLoader
 class ConfigError(Exception):
     pass
 
-CONFIG_ENV_VARIABLE = 'CONFIG_PATH'
-DEFAULT_CONFIG_PATH = Path(__file__).parent / '../config.yaml'
+
+CONFIG_ENV_VARIABLE = "CONFIG_PATH"
+DEFAULT_CONFIG_PATH = Path(__file__).parent / "../config.yaml"
+
 
 class Config(YAMLObject):
-    yaml_tag = '!Config'
+    yaml_tag = "!Config"
     _config: Any | Config = None
 
     def __init__(self, database_type):
         self.database_type = database_type
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(database_type={self.database_type})'
+        return f"{self.__class__.__name__}(database_type={self.database_type})"
 
     @classmethod
     def construct(cls, loader, node) -> Config:
@@ -47,9 +49,8 @@ class Config(YAMLObject):
             # fallback to default path
             path = DEFAULT_CONFIG_PATH
 
-
         if not path.is_file():
-            raise ConfigError(f'Invalid config file: {path}. {Path.cwd()}')
+            raise ConfigError(f"Invalid config file: {path}. {Path.cwd()}")
 
         with path.open() as f:
             cls._config = safe_load(f)
@@ -60,4 +61,5 @@ class Config(YAMLObject):
             cls.build()
         return cls._config
 
-SafeLoader.add_constructor('!Config', Config.construct)
+
+SafeLoader.add_constructor("!Config", Config.construct)

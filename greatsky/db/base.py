@@ -10,7 +10,7 @@ class BaseKVDB(ABC):
     @abstractmethod
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
-    
+
     @abstractmethod
     def __setitem__(self, key: str, value: str) -> None:
         pass
@@ -18,7 +18,7 @@ class BaseKVDB(ABC):
     @abstractmethod
     def __getitem__(self, key: str) -> str:
         pass
-    
+
     @abstractmethod
     def __delitem__(self, key: str):
         pass

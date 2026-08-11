@@ -4,8 +4,7 @@ from greatsky.db.base import BaseKVDB
 
 import plyvel
 
-
-DEFAULT_LEVEL_DB_FILE = '/tmp/greatsky_db'
+DEFAULT_LEVEL_DB_FILE = "/tmp/greatsky_db"
 
 
 class LevelDB(BaseKVDB):
@@ -21,7 +20,7 @@ class LevelDB(BaseKVDB):
     def __init__(self, db_file=DEFAULT_LEVEL_DB_FILE):
         if db_file is None:
             db_file = DEFAULT_LEVEL_DB_FILE
-        self.db = plyvel.DB(db_file, create_if_missing=True)        
+        self.db = plyvel.DB(db_file, create_if_missing=True)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.db.close()
@@ -34,7 +33,7 @@ class LevelDB(BaseKVDB):
         with self.lock:
             result = self.db.get(key.encode())
         return result.decode() if result is not None else None
-    
+
     def __delitem__(self, key: str):
         with self.lock:
             self.db.delete(key.encode())

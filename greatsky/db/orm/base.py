@@ -6,7 +6,8 @@ from typing import Any, Self
 from greatsky.db import BaseKVDB
 from pydantic import BaseModel, Field
 
-KEY_DELIMITER: str = ':::'
+KEY_DELIMITER: str = ":::"
+
 
 class DatabaseEntry(ABC, BaseModel):
     db_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -16,7 +17,7 @@ class DatabaseEntry(ABC, BaseModel):
     @abstractmethod
     def get_label(cls) -> str:
         pass
-    
+
     @classmethod
     @abstractmethod
     def get_model_type(cls) -> type[BaseModel]:
@@ -24,7 +25,7 @@ class DatabaseEntry(ABC, BaseModel):
 
     @classmethod
     def make_key(cls, key: str):
-        return f'{cls.get_label()}{KEY_DELIMITER}{key}'
+        return f"{cls.get_label()}{KEY_DELIMITER}{key}"
 
     @classmethod
     def strip_key(cls, key: str):
@@ -50,7 +51,7 @@ class DatabaseEntry(ABC, BaseModel):
         full_key = cls.make_key(key)
         value = db[full_key]
         if value is None:
-            raise KeyError(f'{cls.get_label()} {key} not found')
+            raise KeyError(f"{cls.get_label()} {key} not found")
         # Convert value to Session
         return cls(
             db_id=key,
@@ -63,12 +64,10 @@ class DatabaseEntry(ABC, BaseModel):
         Read all objects of this type from database and return
         a list of deserialized objects
         """
-        entries = db.read_all(prefix=f'{cls.get_label()}:')
+        entries = db.read_all(prefix=f"{cls.get_label()}:")
         return [
-            cls(
-                db_id=cls.strip_key(k),
-                model=cls.deserialize_model(v)
-            ) for k, v in entries.items()
+            cls(db_id=cls.strip_key(k), model=cls.deserialize_model(v))
+            for k, v in entries.items()
         ]
 
     @classmethod

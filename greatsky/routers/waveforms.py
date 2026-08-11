@@ -1,4 +1,3 @@
-import json
 from fastapi import (
     APIRouter,
     Response,
@@ -23,7 +22,6 @@ from greatsky.utils import (
     Tag,
 )
 
-
 router = APIRouter()
 
 # get_db_class allows us to swap out another key-value data store
@@ -41,7 +39,7 @@ DB_TYPE = get_db_class()
 def create_input_waveforms(
     device_id: str,
     session_id: str,
-    wave: CreateInputWaveformsRequest, 
+    wave: CreateInputWaveformsRequest,
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -53,17 +51,16 @@ def create_input_waveforms(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # check input_ids against list of inputs on actual device
     extra = set(wave.input_ids).difference(set(device.model.input_ids))
     if extra:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {
-            'error': 'Invalid input_ids specified for device '
-                        f'{device_id}: {extra}'
+            "error": "Invalid input_ids specified for device " f"{device_id}: {extra}"
         }
-    
+
     # Dispatch waveform to driver for each of the specified device inputs
     # NOTE: This is highly error prone and wouldn't likely work in the
     # real world.  Several inputs could be conneted to the same waveform
@@ -73,7 +70,7 @@ def create_input_waveforms(
     for input_id in wave.input_ids:
         driver = InputDriver(input_id)
         driver.set_waveform(wave.waveform)
-        
+
     result = CreateInputWaveformsResponse(
         device_id=device_id,
         wave=wave,
@@ -90,7 +87,7 @@ def create_input_waveforms(
 def set_input_waveform_activation(
     device_id: str,
     session_id: str,
-    activation: SetInputWaveformActivationRequest, 
+    activation: SetInputWaveformActivationRequest,
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -102,22 +99,21 @@ def set_input_waveform_activation(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Check input_ids against list of inputs on actual device
     extra = set(activation.input_ids).difference(set(device.model.input_ids))
     if extra:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {
-            'error': 'Invalid input_ids specified for device '
-                        f'{device_id}: {extra}'
+            "error": "Invalid input_ids specified for device " f"{device_id}: {extra}"
         }
 
     # activate/deactivate specified inputs on this device
     for input_id in activation.input_ids:
         driver = InputDriver(input_id)
         driver.set_waveform_enabled(activation.enabled)
-        
+
     result = SetInputWaveformActivationResponse(
         device_id=device_id,
         activation=activation,
@@ -146,15 +142,14 @@ def set_output_waveform_capture_status(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Check output_ids against list of outputs on actual device
     extra = set(capture.output_ids).difference(set(device.model.output_ids))
     if extra:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {
-            'error': 'Invalid output_ids specified for device '
-                     f'{device_id}: {extra}'
+            "error": "Invalid output_ids specified for device " f"{device_id}: {extra}"
         }
 
     # set capture status for specified outputs
@@ -166,7 +161,7 @@ def set_output_waveform_capture_status(
         for output_id in capture.output_ids:
             driver = OutputDriver(output_id)
             driver.capture_waveform()
-        
+
     result = SetOutputWaveformCaptureStatusResponse(
         device_id=device_id,
         capture=capture,
@@ -195,15 +190,14 @@ def get_output_waveforms(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Check output_ids against list of outputs on actual device
     extra = set(output_ids).difference(set(device.model.output_ids))
     if extra:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {
-            'error': 'Invalid output_ids specified for device '
-                     f'{device_id}: {extra}'
+            "error": "Invalid output_ids specified for device " f"{device_id}: {extra}"
         }
 
     # collect waveform captures for specified outputs
@@ -217,5 +211,5 @@ def get_output_waveforms(
         device_id=device_id,
         captures=captures,
     )
-        
+
     return result.model_dump_json()

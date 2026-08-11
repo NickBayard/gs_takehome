@@ -12,7 +12,7 @@ class UserModel(BaseModel):
     email: str  # TODO No validation
     hashed_password: str
     permissions: list[str] = Field(default_factory=list)
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
 
 
 class User(DatabaseEntry):

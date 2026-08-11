@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI
 
 from greatsky.routers import (
     biases,
     devices,
-    sessions, 
+    sessions,
     waveforms,
     weights,
 )

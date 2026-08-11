@@ -25,7 +25,6 @@ from greatsky.utils import (
     Tag,
 )
 
-
 router = APIRouter()
 
 # get_db_class allows us to swap out another key-value data store
@@ -43,7 +42,7 @@ DB_TYPE = get_db_class()
 def set_output_biases(
     device_id: str,
     session_id: str,
-    bias: SetOutputBiasesRequest, 
+    bias: SetOutputBiasesRequest,
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -55,15 +54,14 @@ def set_output_biases(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Check output_ids against list of outputs on actual device
     extra = set(bias.output_ids).difference(set(device.model.output_ids))
     if extra:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {
-            'error': 'Invalid output_ids specified for device '
-                     f'{device_id}: {extra}'
+            "error": "Invalid output_ids specified for device " f"{device_id}: {extra}"
         }
 
     # Set bias and/or enabled status of specified outputs
@@ -73,7 +71,7 @@ def set_output_biases(
             driver.set_voltage(bias.value)
         if bias.enabled is not None:
             driver.set_volt_enabled(bias.enabled)
-        
+
     result = SetOutputBiasesResponse(
         device_id=device_id,
         bias=bias,
@@ -90,7 +88,7 @@ def set_output_biases(
 def get_output_biases(
     device_id: str,
     session_id: str,
-    output_ids: list[str], 
+    output_ids: list[str],
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -102,15 +100,14 @@ def get_output_biases(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Check output_ids against list of outputs on actual device
     extra = set(output_ids).difference(set(device.model.output_ids))
     if extra:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {
-            'error': 'Invalid output_ids specified for device '
-                     f'{device_id}: {extra}'
+            "error": "Invalid output_ids specified for device " f"{device_id}: {extra}"
         }
 
     # Get bias and enabled status of specified outputs
@@ -121,8 +118,8 @@ def get_output_biases(
         try:
             biases[output_id] = driver.get_volt()
         except InstrumentError as e:
-            errors.append(f'Output_id {output_id}: str(e)')
-        
+            errors.append(f"Output_id {output_id}: {str(e)}")
+
     result = GetOutputBiasesResponse(
         device_id=device_id,
         biases=biases,
@@ -140,7 +137,7 @@ def get_output_biases(
 def set_edges_biases(
     device_id: str,
     session_id: str,
-    biases: SetEdgesBiasesRequest, 
+    biases: SetEdgesBiasesRequest,
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -152,15 +149,14 @@ def set_edges_biases(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Check edge_ids against list of edges on actual device
     extra = set(biases.edge_ids).difference(set(device.model.edge_ids))
     if extra:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {
-            'error': 'Invalid edge_ids specified for device '
-                     f'{device_id}: {extra}'
+            "error": "Invalid edge_ids specified for device " f"{device_id}: {extra}"
         }
 
     # Set bias and/or enabled status of specified outputs
@@ -170,7 +166,7 @@ def set_edges_biases(
             driver.set_voltage(biases.value)
         if biases.enabled is not None:
             driver.set_volt_enabled(biases.enabled)
-        
+
     result = SetEdgesBiasesResponse(
         device_id=device_id,
         biases=biases,
@@ -187,7 +183,7 @@ def set_edges_biases(
 def get_edge_biases(
     device_id: str,
     session_id: str,
-    edge_ids: list[tuple[str, str]], 
+    edge_ids: list[tuple[str, str]],
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -199,15 +195,14 @@ def get_edge_biases(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Check edge_ids against list of edges on actual device
     extra = set(edge_ids).difference(set(device.model.edge_ids))
     if extra:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {
-            'error': 'Invalid edge_ids specified for device '
-                     f'{device_id}: {extra}'
+            "error": "Invalid edge_ids specified for device " f"{device_id}: {extra}"
         }
 
     # Gete bias values of specified edges
@@ -218,8 +213,8 @@ def get_edge_biases(
         try:
             biases[edge_id] = driver.get_volt()
         except InstrumentError as e:
-            errors.append(f'Edge_id {edge_id}: str(e)')
-        
+            errors.append(f"Edge_id {edge_id}: {str(e)}")
+
     result = GetEdgesBiasesResponse(
         device_id=device_id,
         biases=biases,
@@ -248,7 +243,7 @@ def get_all_biases(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Get biases of all outputs and edges
     errors = []
@@ -258,7 +253,7 @@ def get_all_biases(
         try:
             edge_biases[edge_id] = driver.get_volt()
         except InstrumentError as e:
-            errors.append(f'Edge_id {edge_id}: str(e)')
+            errors.append(f"Edge_id {edge_id}: {str(e)}")
 
     output_biases = {}
     for output_id in device.model.output_ids:
@@ -266,8 +261,8 @@ def get_all_biases(
         try:
             output_biases[output_id] = driver.get_volt()
         except InstrumentError as e:
-            errors.append(f'Output_id {output_id}: str(e)')
-        
+            errors.append(f"Output_id {output_id}: {str(e)}")
+
     result = GetAllBiasesResponse(
         device_id=device_id,
         output_biases=output_biases,

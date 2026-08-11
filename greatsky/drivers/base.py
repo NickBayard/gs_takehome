@@ -11,10 +11,11 @@ class to only have access to the instrumentation drivers that it needs
 and only exposes the instrumentation API methods that are appropriate
 for that component type.
 """
+
 from greatsky.drivers.lib import (
     poll_driver,
     DriverAttribute,
-) 
+)
 from greatsky.routers.models import Waveform
 
 
@@ -27,41 +28,41 @@ class BiasDriver:
         self.bias_driver = bias_driver
 
     def set_voltage(self, value: float):
-        assert hasattr(self.bias_driver, 'set_volt')
+        assert hasattr(self.bias_driver, "set_volt")
         self.bias_driver.set_volt(value)
 
     def get_volt(self) -> float:
-        if not hasattr(self.bias_driver, 'get_volt'):
+        if not hasattr(self.bias_driver, "get_volt"):
             # not all instrumentation drivers support get_volt
             # we'll raise to let the caller know that it isn't supported
             raise InstrumentError(
-                f'Driver {self.bias_driver.__class__.__name__} has '
-                'no method get_volt.'
+                f"Driver {self.bias_driver.__class__.__name__} has "
+                "no method get_volt."
             )
         return self.bias_driver.get_volt()
-                
+
     def set_volt_enabled(self, enabled: bool):
         # NOTE: unstable driver interface
-        if hasattr(self.bias_driver, 'output_on'):
+        if hasattr(self.bias_driver, "output_on"):
             if enabled:
                 self.bias_driver.output_on()
             else:
                 self.bias_driver.output_off()
         else:
-            assert hasattr(self.bias_driver, 'output')
+            assert hasattr(self.bias_driver, "output")
             self.bias_driver.output(setting=enabled)
 
-            
+
 class WaveformOutDriver:
     def __init__(self, waveform_driver):
         self.waveform_driver = waveform_driver
 
     def capture_waveform(self):
-        assert hasattr(self.waveform_driver, 'capture_waveform')
+        assert hasattr(self.waveform_driver, "capture_waveform")
         self.waveform_driver.capture_waveform()
 
     def get_waveform(self) -> bytearray:
-        assert hasattr(self.waveform_driver, 'get_waveform')
+        assert hasattr(self.waveform_driver, "get_waveform")
         return self.waveform_driver.get_waveform()
 
 
@@ -70,27 +71,27 @@ class WaveformInDriver:
         self.waveform_in_driver = waveform_in_driver
 
     def set_waveform(self, wave: Waveform):
-        assert hasattr(self.waveform_in_driver, 'set_waveform')
+        assert hasattr(self.waveform_in_driver, "set_waveform")
         self.waveform_in_driver.set_waveform(wave)
 
     def set_waveform_enabled(self, enabled: bool):
         # NOTE: unstable driver interface
-        if hasattr(self.waveform_in_driver, 'output_on'):
+        if hasattr(self.waveform_in_driver, "output_on"):
             if enabled:
                 self.waveform_in_driver.output_on()
             else:
                 self.waveform_in_driver.output_off()
         else:
-            assert hasattr(self.waveform_in_driver, 'output')
+            assert hasattr(self.waveform_in_driver, "output")
             self.waveform_in_driver.output(setting=enabled)
 
 
 class MemoryDriver:
     def __init__(self, memory_driver):
         self.memory_driver = memory_driver
-    
+
     def set_memory(self, value: float):
-        assert hasattr(self.memory_driver, 'set_memory')
+        assert hasattr(self.memory_driver, "set_memory")
         self.memory_driver.set_memory(value)
 
 
@@ -99,7 +100,7 @@ class InputDriver(WaveformInDriver):
         self.input_id = input_id
         WaveformInDriver.__init__(self, poll_driver(DriverAttribute.INPUT_WAVEFORM))
 
-    
+
 class OutputDriver(BiasDriver, WaveformOutDriver):
     def __init__(self, output_id: str):
         self.output_id = output_id

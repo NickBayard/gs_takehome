@@ -3,12 +3,13 @@ from greatsky.db.leveldb import LevelDB
 from greatsky.db.base import BaseKVDB
 
 VALID_DB_MAP = {
-    'leveldb': LevelDB
-    # insert additional key-value data stores 
+    "leveldb": LevelDB
+    # insert additional key-value data stores
     # implementing the BaseKVDB interface here.
 }
 
 _db_class_type = None
+
 
 def get_db_class() -> type[BaseKVDB]:
     """
@@ -24,7 +25,6 @@ def get_db_class() -> type[BaseKVDB]:
         # without code changes.
         config = Config.get()
         if config.database_type not in VALID_DB_MAP:
-            raise ValueError(f'Invalid database type: {config.database_type}')
+            raise ValueError(f"Invalid database type: {config.database_type}")
         _db_class_type = VALID_DB_MAP[config.database_type]
     return _db_class_type
-    

@@ -16,7 +16,6 @@ from greatsky.utils import (
     Tag,
 )
 
-
 router = APIRouter()
 
 # get_db_class allows us to swap out another key-value data store
@@ -24,6 +23,7 @@ router = APIRouter()
 # interface.  This class uses the YAML config file to determine
 # the database class type.
 DB_TYPE = get_db_class()
+
 
 @router.patch(
     "/devices/{device_id}/edges/weights/",
@@ -33,7 +33,7 @@ DB_TYPE = get_db_class()
 def set_edges_weights(
     device_id: str,
     session_id: str,
-    weights: SetEdgesWeightsRequest, 
+    weights: SetEdgesWeightsRequest,
     response: Response,
 ):
     with DB_TYPE() as db:
@@ -45,15 +45,14 @@ def set_edges_weights(
                 response=response,
             )
         except SessionDeviceError as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Check edge_ids against list of edges on actual device
     extra = set(weights.edge_ids).difference(set(device.model.edge_ids))
     if extra:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {
-            'error': 'Invalid edge_ids specified for device '
-                     f'{device_id}: {extra}'
+            "error": "Invalid edge_ids specified for device " f"{device_id}: {extra}"
         }
 
     # Set weight of specified edges
